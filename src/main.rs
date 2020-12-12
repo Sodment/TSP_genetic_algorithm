@@ -1,4 +1,3 @@
-//mod city;
 pub mod file_reader;
 pub mod brute_force_tsp;
 pub mod city;
@@ -10,16 +9,18 @@ fn main() {
     let read_file = file_reader::read_file("C:\\users\\public\\ber52.txt");
     let cities  = city::City::string_to_city(read_file);
     let mut sim = genetic_simulation::Simulation::new(
-        10000,
+        1000,
         0.7,
-        0.01,
+        0.04,
         100,
         cities
     );
     sim.run(1);
+    /*
     let mut v: Vec<usize> = vec![];
     v = sim.dna.clone();
     v.push(0);
+     */
 
 
 }

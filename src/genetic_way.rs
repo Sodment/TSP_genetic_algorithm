@@ -66,4 +66,16 @@ pub fn fitness_calculator(dna: &[usize], cities: &[city::City]) -> f64
         d += cities[j].distance_to(&cities[k]);
     }
     1.0 / d
+
+}
+
+pub fn path_calculator(dna: &[usize], cities: &[city::City]) -> f64
+{
+    let length = cities.len() - 1;
+    let mut d = 0.0;
+    for i in 0..length {
+        let (j, k) = (dna[i], dna[i + 1]);
+        d += cities[j].distance_to(&cities[k]);
+    }
+    d
 }
