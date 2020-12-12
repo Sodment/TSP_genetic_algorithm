@@ -21,7 +21,7 @@ impl Individual {
 
         let n = self.dna.len();
         let mut rng = thread_rng();
-        let start = rng.gen_range(0, n - 1);
+        let start = rng.gen_range(1, n - 1);
         let end = rng.gen_range(start + 1, n);
 
         let child1_dna = crossover_dna_pmx(&self.dna, &other.dna, start, end);
@@ -34,7 +34,7 @@ impl Individual {
     }
 
     pub fn mutate(&mut self, cities: &[city::City]) {
-        let i = thread_rng().gen_range(0, self.dna.len() - 1);
+        let i = thread_rng().gen_range(1, self.dna.len() - 1);
         self.dna.swap(i, i + 1);
         self.fitness = fitness_calculator(&self.dna, &cities);
     }

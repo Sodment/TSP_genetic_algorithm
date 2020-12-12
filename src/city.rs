@@ -46,15 +46,5 @@ impl City
         cities
     }
 
-    pub fn path_distance_traveled(vector: Vec<City>) -> f64
-    {
-        let mut travelled_distance: f64 = 0.0;
-        for i in 1..vector.len()
-        {
-            travelled_distance += City::distance_to(&vector[i-1], &vector[i]);
-
-        }
-        travelled_distance
-    }
 
 }

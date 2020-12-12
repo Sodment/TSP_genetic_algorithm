@@ -128,8 +128,9 @@ impl Simulation {
 }
 
 pub fn random_dna(n: usize) -> Vec<usize> {
-    let mut v:Vec<usize> = (0..n).collect();
+    let mut v:Vec<usize> = (1..n).collect();
     thread_rng().shuffle(&mut v);
+    v.insert(0,0);
     v
 }
 
@@ -148,6 +149,7 @@ pub fn find_fittest(population: &[genetic_way::Individual]) -> genetic_way::Indi
             best_individual = individual;
         }
     }
+    println!("{}", best_individual.fitness);
     best_individual.clone()
 }
 
