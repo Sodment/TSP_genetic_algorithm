@@ -8,5 +8,6 @@ fn main() {
     let read_file = file_reader::read_file("C:\\users\\public\\ber52.txt");
     let cities  = city::City::string_to_city(read_file);
     println!("{}", brute_force_tsp::greedy_way(&cities));
+    println!("WTF");
 }
 
