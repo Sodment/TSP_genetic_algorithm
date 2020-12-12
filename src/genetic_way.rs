@@ -1,6 +1,5 @@
 use super::city;
 use rand::{thread_rng, Rng};
-use std::os::raw::c_ushort;
 
 pub const MIN_POSITIVE: f64 = 2.2250738585072014e-308f64;
 
@@ -12,8 +11,8 @@ pub struct Individual {
 
 impl Individual {
 
-    pub fn new(dna: Vec<usize>, cities: &[City]) -> Self {
-        let fitness = fitness(&dna, &cities);
+    pub fn new(dna: Vec<usize>, cities: &[city::City]) -> Self {
+        let fitness = fitness_calculator(&dna, &cities);
         Individual { dna, fitness }
     }
 
@@ -34,29 +33,37 @@ impl Individual {
         (child1, child2)
     }
 
-    pub fn crossover_dna_pmx(parent1: &[usize], parent2: &[usize], start: usize, end: usize) -> Vec<usize>{
-        let parent1_slice = &parent1[start..=end];
-        let mut child: Vec<usize> = vec![];
-
-        for i in 0..parent2.len(){
-            if !parent1_slice.contains(&parent2[i]){
-                child.push(parent2[i]);
-            }
-        }
-        let end_slice = &child.split_off(start);
-        child.extend_from_slice(parent1_slice);
-        child.extend_from_slice(end_slice);
-        child
+    pub fn mutate(&mut self, cities: &[city::City]) {
+        let i = thread_rng().gen_range(0, self.dna.len() - 1);
+        self.dna.swap(i, i + 1);
+        self.fitness = fitness_calculator(&self.dna, &cities);
     }
 
-    pub fn fitness(dna: &[usize], cities: &[city::City]) -> f64
-    {
-        let length = cities.len() - 1;
-        let mut d = MIN_POSITIVE;
-        for i in 0..length {
-            let (j, k) = (dna[i], dna[i + 1]);
-            d += cities[j].distance_to(&cities[k]);
+
+}
+
+pub fn crossover_dna_pmx(parent1: &[usize], parent2: &[usize], start: usize, end: usize) -> Vec<usize>{
+    let parent1_slice = &parent1[start..=end];
+    let mut child: Vec<usize> = vec![];
+
+    for i in 0..parent2.len(){
+        if !parent1_slice.contains(&parent2[i]){
+            child.push(parent2[i]);
         }
-        1.0 / d
     }
+    let end_slice = &child.split_off(start);
+    child.extend_from_slice(parent1_slice);
+    child.extend_from_slice(end_slice);
+    child
+}
+
+pub fn fitness_calculator(dna: &[usize], cities: &[city::City]) -> f64
+{
+    let length = cities.len() - 1;
+    let mut d = MIN_POSITIVE;
+    for i in 0..length {
+        let (j, k) = (dna[i], dna[i + 1]);
+        d += cities[j].distance_to(&cities[k]);
+    }
+    1.0 / d
 }
