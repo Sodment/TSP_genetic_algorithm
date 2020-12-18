@@ -1,8 +1,10 @@
 use rand::{thread_rng, Rng};
 use super::*;
+use std::time::{Duration, Instant};
 
 pub struct Simulation {
 
+    time: u64,
     iterations: usize,
 
     crossover_probability: f64,
@@ -21,13 +23,14 @@ pub struct Simulation {
 
 impl Simulation {
 
-    pub fn new(iterations: usize,
+    pub fn new(time: u64,
                crossover_probability: f64,
                mutation_probability: f64,
                population_size: usize,
                cities: Vec<city::City>) -> Self {
 
         assert_eq!(population_size % 10, 0, "population_size:{} should be divisible by 10", population_size);
+        let iterations= 0;
 
         let number_of_cities = cities.len();
         let number_of_mutations = 0;
@@ -36,6 +39,7 @@ impl Simulation {
         let dna: Vec<usize> = Vec::new();
 
         Simulation {
+            time,
             iterations,
             crossover_probability,
             mutation_probability,
@@ -71,7 +75,7 @@ impl Simulation {
         let cumulative_weights = get_cumulative_weights(&individuals);
         let mut next_population = Vec::new();
 
-        for _ in 0..(self.population_size / 2 ) { // generate two individuals per iteration
+        for _ in 0..(self.population_size / 2 ) {
 
             let (mom, dad) = select_parents(&cumulative_weights, &individuals);
             let (mut daughter, mut son) = self.generate_children(&mom, &dad);
@@ -90,26 +94,30 @@ impl Simulation {
         let mut population = random_population(self.population_size, &self.cities);
         let mut champion = find_fittest(&population);
         let mut first_champ = champion.clone();
-        first_champ.dna.push(0);
         println!("\n --------------- \n STATS AT START \n --------------- \n");
-        println!("Path at start: {:?}", first_champ.dna);
+        println!("Fittest DNA first batch: {:?}", first_champ.dna);
         println!("Fitness at start: {} ", first_champ.fitness);
         println!("Path length at start: {} ", genetic_way::path_calculator(&champion.dna, &self.cities));
 
+        let now = Instant::now();
+        let time_to_run = Duration::new(self.time ,0);
+        let mut new_now = Instant::now();
 
-        for _ in 0..self.iterations {
-
+        while new_now.duration_since(now) < time_to_run {
+            self.iterations += 1;
+            new_now = Instant::now();
             let challenger = find_fittest(&population);
             population = self.generate_population(population);
 
             if champion.fitness <= challenger.fitness {
                 champion = challenger;
             }
+
         }
+
 
         self.fitness = champion.fitness;
         self.dna = champion.dna;
-        self.dna.push(0);
 
         self.print();
     }
@@ -122,11 +130,11 @@ impl Simulation {
         println!("BEST TRAVEL PATH: {:?}", self.dna);
         println!("Fitness Score: {} ", self.fitness);
         println!("Path Score: {} ", genetic_way::path_calculator(&self.dna, &self.cities));
-        println!("{} mutations out of {} individuals produced", self.number_of_mutations, x);
-        println!("{} cross-overs out of {} individuals produced", self.number_of_crossovers, x);
+        println!("Number of iterations in {} seconds: {} ", self.time, self.iterations);
+        println!("{} mutations out of individuals {} produced", self.number_of_mutations, x);
+        println!("{} cross-overs out of individuals {} produced", self.number_of_crossovers, x);
 
         println!("\n --------------- \n SPECS \n --------------- \n");
-        println!("iterations: {:?}", self.iterations);
         println!("crossover_probability: {:?}", self.crossover_probability);
         println!("mutation_probability: {:?}", self.mutation_probability);
         println!("population_size: {:?}", self.population_size);
@@ -137,9 +145,8 @@ impl Simulation {
 }
 
 pub fn random_dna(n: usize) -> Vec<usize> {
-    let mut v:Vec<usize> = (1..n).collect();
+    let mut v:Vec<usize> = (0..n).collect();
     thread_rng().shuffle(&mut v);
-    v.insert(0,0);
     v
 }
 
@@ -170,6 +177,7 @@ pub fn get_cumulative_weights(individuals: &[genetic_way::Individual]) -> Vec<f6
         running_sum += i.fitness;
         cumulative_weights.push(running_sum);
     }
+    println!("{}", running_sum);
     cumulative_weights
 }
 
