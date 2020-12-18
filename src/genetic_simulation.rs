@@ -89,6 +89,13 @@ impl Simulation {
 
         let mut population = random_population(self.population_size, &self.cities);
         let mut champion = find_fittest(&population);
+        let mut first_champ = champion.clone();
+        first_champ.dna.push(0);
+        println!("\n --------------- \n STATS AT START \n --------------- \n");
+        println!("Path at start: {:?}", first_champ.dna);
+        println!("Fitness at start: {} ", first_champ.fitness);
+        println!("Path length at start: {} ", genetic_way::path_calculator(&champion.dna, &self.cities));
+
 
         for _ in 0..self.iterations {
 
@@ -102,6 +109,7 @@ impl Simulation {
 
         self.fitness = champion.fitness;
         self.dna = champion.dna;
+        self.dna.push(0);
 
         self.print();
     }
@@ -113,6 +121,7 @@ impl Simulation {
         println!("\n --------------- \n STATS \n --------------- \n");
         println!("BEST TRAVEL PATH: {:?}", self.dna);
         println!("Fitness Score: {} ", self.fitness);
+        println!("Path Score: {} ", genetic_way::path_calculator(&self.dna, &self.cities));
         println!("{} mutations out of {} individuals produced", self.number_of_mutations, x);
         println!("{} cross-overs out of {} individuals produced", self.number_of_crossovers, x);
 
@@ -149,7 +158,6 @@ pub fn find_fittest(population: &[genetic_way::Individual]) -> genetic_way::Indi
             best_individual = individual;
         }
     }
-    println!("{}", best_individual.fitness);
     best_individual.clone()
 }
 
