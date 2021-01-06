@@ -56,7 +56,7 @@ impl Simulation {
     fn generate_children(&mut self, mom: &genetic_way::Individual, dad: &genetic_way::Individual) -> (genetic_way::Individual, genetic_way::Individual) {
         if thread_rng().gen_bool(self.crossover_probability) {
             self.number_of_crossovers += 2;
-            mom.crossover_pmx(dad, &self.cities)
+            mom.cross_over(dad, &self.cities)
         } else {
             (mom.clone(), dad.clone())
         }
@@ -78,6 +78,7 @@ impl Simulation {
         for _ in 0..(self.population_size / 2 ) {
 
             let (mom, dad) = select_parents(&cumulative_weights, &individuals);
+            //println!("mom fitness: {}, dad fitness: {} ", mom.fitness, dad.fitness);
             let (mut daughter, mut son) = self.generate_children(&mom, &dad);
             self.might_mutate_child(&mut daughter);
             self.might_mutate_child(&mut son);
@@ -91,10 +92,12 @@ impl Simulation {
     pub fn run(&mut self, skip: usize) {
         assert!(skip > 0, "skip must be 1 or larger");
 
-        let mut population = random_population(self.population_size, &self.cities);
+        //let mut population = greedy_population(&self.cities);
+        let mut population =  random_population(self.population_size, &self.cities);
         let mut champion = find_fittest(&population);
-        let mut first_champ = champion.clone();
+        let first_champ = champion.clone();
         println!("\n --------------- \n STATS AT START \n --------------- \n");
+        println!("Time to run simulation: {} minutes", self.time/60);
         println!("Fittest DNA first batch: {:?}", first_champ.dna);
         println!("Fitness at start: {} ", first_champ.fitness);
         println!("Path length at start: {} ", genetic_way::path_calculator(&champion.dna, &self.cities));
@@ -107,9 +110,11 @@ impl Simulation {
             self.iterations += 1;
             new_now = Instant::now();
             let challenger = find_fittest(&population);
+            //println!("challenger fitness: {}", challenger.fitness);
             population = self.generate_population(population);
 
-            if champion.fitness <= challenger.fitness {
+            if champion.fitness < challenger.fitness {
+                println!("Iteration {} found better fit individual: {}", self.iterations, champion.clone().fitness);
                 champion = challenger;
             }
 
@@ -161,7 +166,7 @@ pub fn find_fittest(population: &[genetic_way::Individual]) -> genetic_way::Indi
     let mut best_individual = &population[0];
 
     for individual in population {
-        if best_individual.fitness > individual.fitness {
+        if best_individual.fitness < individual.fitness {
             best_individual = individual;
         }
     }
@@ -177,8 +182,25 @@ pub fn get_cumulative_weights(individuals: &[genetic_way::Individual]) -> Vec<f6
         running_sum += i.fitness;
         cumulative_weights.push(running_sum);
     }
-    println!("{}", running_sum);
     cumulative_weights
+}
+
+pub fn greedy_population(cities: &[city::City]) -> Vec<genetic_way::Individual>
+{
+    let mut individuals: Vec<genetic_way::Individual> = Vec::new();
+    let greedy_path = brute_force_tsp::greedy_way(cities);
+    let mut ind = genetic_way::Individual::new(greedy_path.clone(), &cities);
+    individuals.push(ind.clone());
+
+    for _ in 1..greedy_path.len()
+    {
+        ind.mutate(cities);
+        individuals.push(ind.clone());
+    }
+
+    individuals
+
+
 }
 
 pub fn random_population(population_size: usize, cities: &[city::City]) -> Vec<genetic_way::Individual> {

@@ -9,19 +9,12 @@ fn main() {
     let read_file = file_reader::read_file("C:\\users\\public\\ber52.txt");
     let cities  = city::City::string_to_city(read_file);
     let mut sim = genetic_simulation::Simulation::new(
+        600,
+        0.85,
+        0.001,
         60,
-        0.9,
-        0.004,
-        100,
         cities
     );
     sim.run(1);
-    /*
-    let mut v: Vec<usize> = vec![];
-    v = sim.dna.clone();
-    v.push(0);
-     */
-
-
 }
 

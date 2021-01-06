@@ -17,42 +17,62 @@ impl Individual {
     }
 
 
-    pub fn crossover_pmx(&self, other: &Individual, cities: &[city::City]) -> (Self, Self){
+    pub fn cross_over(&self, other: &Individual, cities: &[city::City]) -> (Self, Self) {
 
         let n = self.dna.len();
         let mut rng = thread_rng();
         let start = rng.gen_range(0, n - 1);
         let end = rng.gen_range(start + 1, n);
 
-        let child1_dna = crossover_dna_pmx(&self.dna, &other.dna, start, end);
-        let child2_dna = crossover_dna_pmx(&other.dna, &self.dna, start, end);
+        let daughter_dna = crossover_dna(&self.dna, &other.dna, start, end);
+        let son_dna = crossover_dna(&other.dna, &self.dna, start, end);
 
-        let child1 = Individual::new(child1_dna, cities);
-        let child2 = Individual::new(child2_dna, cities);
+        let daughter = Individual::new(daughter_dna, cities);
+        let son = Individual::new(son_dna, cities);
 
-        (child1, child2)
+        (daughter, son)
     }
 
     pub fn mutate(&mut self, cities: &[city::City]) {
-        let i = thread_rng().gen_range(0, self.dna.len() - 1);
-        self.dna.swap(i, i + 1);
+        let i = thread_rng().gen_range(0, self.dna.len() - 2);
+        let j = thread_rng().gen_range(i + 1, self.dna.len() - 1);
+        /*
+        println!("i: {}, j: {}", i ,j);
+        println!("ORIGINAL");
+        for i in self.dna.clone(){
+            print!("{} --> ", self.dna[i]);
+        }
+        println!();
+        */
+        let mut slice = &mut self.dna.clone()[i..=j];
+        slice.reverse();
+        self.dna.splice(i..=j, slice.iter().cloned());
+        /*
+        println!("AFTER MUTATION");
+        for i in self.dna.clone(){
+            print!("{} --> ", self.dna[i]);
+        }
+        println!();
+         */
         self.fitness = fitness_calculator(&self.dna, &cities);
     }
 
 
 }
 
-pub fn crossover_dna_pmx(parent1: &[usize], parent2: &[usize], start: usize, end: usize) -> Vec<usize>{
-    let parent1_slice = &parent1[start..=end];
-    let mut child: Vec<usize> = vec![];
+fn crossover_dna(mom: &[usize], dad: &[usize], start: usize, end: usize) -> Vec<usize> {
 
-    for i in 0..parent2.len(){
-        if !parent1_slice.contains(&parent2[i]){
-            child.push(parent2[i]);
+    let mom_slice = &mom[start..=end];
+    let mut child: Vec<usize> = Vec::new();
+
+    for i in 0..dad.len() {
+        if !mom_slice.contains(&dad[i]) {
+            child.push(dad[i]);
         }
     }
+
     let end_slice = &child.split_off(start);
-    child.extend_from_slice(parent1_slice);
+    child.extend_from_slice(mom_slice);
     child.extend_from_slice(end_slice);
     child
 }
@@ -67,11 +87,7 @@ pub fn fitness_calculator(dna: &[usize], cities: &[city::City]) -> f64
 
 pub fn path_calculator(dna: &[usize], cities: &[city::City]) -> f64
 {
-    let length = cities.len() - 1;
-    let mut d = 0.0;
-    for i in 0..length {
-        let (j, k) = (dna[i], dna[i + 1]);
-        d += cities[j].distance_to(&cities[k]);
-    }
+    let d = dna.windows(2)
+        .fold(MIN_POSITIVE, |acc, w| acc + cities[w[0]].distance_to(&cities[w[1]]));
     d
 }
