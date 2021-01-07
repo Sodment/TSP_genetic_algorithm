@@ -1,6 +1,8 @@
 use rand::{thread_rng, Rng};
 use super::*;
 use std::time::{Duration, Instant};
+use crate::file_reader::read_file;
+use crate::genetic_way::Individual;
 
 pub struct Simulation {
 
@@ -72,12 +74,14 @@ impl Simulation {
     pub fn generate_population(&mut self, individuals: Vec<genetic_way::Individual>) -> Vec<genetic_way::Individual> {
         assert_eq!(self.population_size % 2, 0, "population_size:{} should be divisible by 2", self.population_size);
 
-        let cumulative_weights = get_cumulative_weights(&individuals);
+        //let cumulative_weights = get_cumulative_weights(&individuals);
+        //println!("weight : {}", cumulative_weights[59]);
         let mut next_population = Vec::new();
 
         for _ in 0..(self.population_size / 2 ) {
 
-            let (mom, dad) = select_parents(&cumulative_weights, &individuals);
+            //let (mom, dad) = select_parents(&cumulative_weights, &individuals);
+            let (mom, dad) = (select_parent_tournament( &individuals), select_parent_tournament( &individuals));
             //println!("mom fitness: {}, dad fitness: {} ", mom.fitness, dad.fitness);
             let (mut daughter, mut son) = self.generate_children(&mom, &dad);
             self.might_mutate_child(&mut daughter);
@@ -92,15 +96,19 @@ impl Simulation {
     pub fn run(&mut self, skip: usize) {
         assert!(skip > 0, "skip must be 1 or larger");
 
-        //let mut population = greedy_population(&self.cities);
-        let mut population =  random_population(self.population_size, &self.cities);
+
+        let mut population = mixed_population(self.population_size, &self.cities);
+        //let mut population = greedy_population(self.population_size, &self.cities);
+        //let mut population =  random_population(self.population_size, &self.cities);
         let mut champion = find_fittest(&population);
-        let first_champ = champion.clone();
+        let mut first_champ = champion.clone();
         println!("\n --------------- \n STATS AT START \n --------------- \n");
         println!("Time to run simulation: {} minutes", self.time/60);
+        first_champ.dna.push(first_champ.dna[0]);
         println!("Fittest DNA first batch: {:?}", first_champ.dna);
+        first_champ.dna.pop();
         println!("Fitness at start: {} ", first_champ.fitness);
-        println!("Path length at start: {} ", genetic_way::path_calculator(&champion.dna, &self.cities));
+        println!("Path length at start: {} ", genetic_way::path_calculator(&first_champ.dna, &self.cities));
 
         let now = Instant::now();
         let time_to_run = Duration::new(self.time ,0);
@@ -123,6 +131,7 @@ impl Simulation {
 
         self.fitness = champion.fitness;
         self.dna = champion.dna;
+        self.dna.push(self.dna[0]);
 
         self.print();
     }
@@ -161,6 +170,27 @@ pub fn select_parents<'a>(w: &[f64], individuals: &'a [genetic_way::Individual])
     (&individuals[mom_index], &individuals[dad_index])
 }
 
+pub fn select_parent_tournament(individuals: &[genetic_way::Individual]) -> &genetic_way::Individual
+{
+    let mut participants: Vec<&Individual> = Vec::new();
+    for _ in 0..8
+    {
+        participants.push(&individuals[thread_rng().gen_range(0,individuals.len())]);
+    }
+    let mut winner = &participants[0];
+
+    for x in &participants
+    {
+        if x.fitness > winner.fitness
+        {
+            winner = x;
+        }
+    }
+    winner.clone()
+
+
+}
+
 pub fn find_fittest(population: &[genetic_way::Individual]) -> genetic_way::Individual {
 
     let mut best_individual = &population[0];
@@ -185,19 +215,16 @@ pub fn get_cumulative_weights(individuals: &[genetic_way::Individual]) -> Vec<f6
     cumulative_weights
 }
 
-pub fn greedy_population(cities: &[city::City]) -> Vec<genetic_way::Individual>
+pub fn greedy_population(population_size: usize, cities: &[city::City]) -> Vec<genetic_way::Individual>
 {
     let mut individuals: Vec<genetic_way::Individual> = Vec::new();
-    let greedy_path = brute_force_tsp::greedy_way(cities);
-    let mut ind = genetic_way::Individual::new(greedy_path.clone(), &cities);
-    individuals.push(ind.clone());
-
-    for _ in 1..greedy_path.len()
+    for _ in 0..population_size
     {
-        ind.mutate(cities);
-        individuals.push(ind.clone());
+        let index = thread_rng().gen_range(0, cities.len()-1);
+        let greedy_path = brute_force_tsp::greedy_way(cities, index);
+        let individual = genetic_way::Individual::new(greedy_path, &cities);
+        individuals.push(individual);
     }
-
     individuals
 
 
@@ -214,6 +241,43 @@ pub fn random_population(population_size: usize, cities: &[city::City]) -> Vec<g
         individuals.push(indiv);
     }
     individuals
+}
+
+pub fn mixed_population(population_size: usize, cities: &[city::City]) -> Vec<genetic_way::Individual>
+{
+    let number_of_cities = cities.len();
+    let mut individuals:Vec<genetic_way::Individual> = Vec::new();
+    let greedy_dna_probability = 0.35;
+    for _ in 0..population_size
+    {
+        if thread_rng().gen_bool(greedy_dna_probability)
+        {
+            individuals.push(greedy_individual(cities))
+
+        }
+        else
+        {
+            individuals.push(random_individual(number_of_cities, cities))
+        }
+    }
+    individuals
+
+}
+
+pub fn greedy_individual(cities: &[city::City]) -> genetic_way::Individual
+{
+    let index = thread_rng().gen_range(0, cities.len()-1);
+    let greedy_path = brute_force_tsp::greedy_way(cities, index);
+    let individual = genetic_way::Individual::new(greedy_path, &cities);
+    individual
+}
+
+pub fn random_individual(number_of_cities: usize, cities: &[city::City]) -> genetic_way::Individual
+{
+    let dna = random_dna(number_of_cities);
+    let individual = genetic_way::Individual::new(dna, &cities);
+    individual
+
 }
 
 pub fn select_index(cumulative_weights: &[f64]) -> usize {

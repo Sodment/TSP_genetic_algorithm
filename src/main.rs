@@ -9,9 +9,9 @@ fn main() {
     let read_file = file_reader::read_file("C:\\users\\public\\ber52.txt");
     let cities  = city::City::string_to_city(read_file);
     let mut sim = genetic_simulation::Simulation::new(
-        600,
-        0.85,
-        0.001,
+        120,
+        0.9,
+        0.03,
         60,
         cities
     );

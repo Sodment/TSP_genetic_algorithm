@@ -1,17 +1,12 @@
 use super::*;
 pub use city::City;
 
-pub fn greedy_way(vector: &[City]) -> Vec<usize>
+pub fn greedy_way(vector: &[City], start_index: usize) -> Vec<usize>
 {
-    let mut city_copy:Vec<City> = Vec::new();
-    for i in vector.iter()
-    {
-        city_copy.push(i.clone());
-
-    }
+    let mut city_copy:Vec<City> = vector.iter().cloned().collect();
 
     let mut path: Vec<usize> = vec![];
-    let mut current_city: City = vector[0].clone();
+    let mut current_city: City = vector[start_index].clone();
     let mut nearest_city: City;
 
     for _ in 0..city_copy.len()

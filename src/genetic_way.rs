@@ -44,7 +44,7 @@ impl Individual {
         }
         println!();
         */
-        let mut slice = &mut self.dna.clone()[i..=j];
+        let slice = &mut self.dna.clone()[i..=j];
         slice.reverse();
         self.dna.splice(i..=j, slice.iter().cloned());
         /*
@@ -55,6 +55,14 @@ impl Individual {
         println!();
          */
         self.fitness = fitness_calculator(&self.dna, &cities);
+
+         /*
+
+        let i = thread_rng().gen_range(1, self.dna.len() - 1);
+        let j = thread_rng().gen_range(1, self.dna.len() - 1);
+        self.dna.swap(i, j);
+        self.fitness = fitness_calculator(&self.dna, &cities);
+         */
     }
 
 
@@ -79,15 +87,18 @@ fn crossover_dna(mom: &[usize], dad: &[usize], start: usize, end: usize) -> Vec<
 
 pub fn fitness_calculator(dna: &[usize], cities: &[city::City]) -> f64
 {
-    let d = dna.windows(2)
+    let mut d = dna.windows(2)
         .fold(MIN_POSITIVE, |acc, w| acc + cities[w[0]].distance_to(&cities[w[1]]));
+    d += city::City::distance_to(&cities[dna[0]], &cities[dna[dna.len()-1]]);
     1.0 / d
 
 }
 
 pub fn path_calculator(dna: &[usize], cities: &[city::City]) -> f64
 {
-    let d = dna.windows(2)
+
+    let mut d = dna.windows(2)
         .fold(MIN_POSITIVE, |acc, w| acc + cities[w[0]].distance_to(&cities[w[1]]));
+    d += city::City::distance_to(&cities[dna[0]], &cities[dna[dna.len()-1]]);
     d
 }
