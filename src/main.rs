@@ -11,8 +11,8 @@ fn main() {
     let mut sim = genetic_simulation::Simulation::new(
         120,
         0.9,
-        0.03,
-        60,
+        0.04,
+        50,
         cities
     );
     sim.run(1);

@@ -173,7 +173,7 @@ pub fn select_parents<'a>(w: &[f64], individuals: &'a [genetic_way::Individual])
 pub fn select_parent_tournament(individuals: &[genetic_way::Individual]) -> &genetic_way::Individual
 {
     let mut participants: Vec<&Individual> = Vec::new();
-    for _ in 0..8
+    for _ in 0..5
     {
         participants.push(&individuals[thread_rng().gen_range(0,individuals.len())]);
     }
@@ -247,7 +247,7 @@ pub fn mixed_population(population_size: usize, cities: &[city::City]) -> Vec<ge
 {
     let number_of_cities = cities.len();
     let mut individuals:Vec<genetic_way::Individual> = Vec::new();
-    let greedy_dna_probability = 0.35;
+    let greedy_dna_probability = 0.3;
     for _ in 0..population_size
     {
         if thread_rng().gen_bool(greedy_dna_probability)
