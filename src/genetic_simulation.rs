@@ -82,7 +82,6 @@ impl Simulation {
 
             //let (mom, dad) = select_parents(&cumulative_weights, &individuals);
             let (mom, dad) = (select_parent_tournament( &individuals), select_parent_tournament( &individuals));
-            //println!("mom fitness: {}, dad fitness: {} ", mom.fitness, dad.fitness);
             let (mut daughter, mut son) = self.generate_children(&mom, &dad);
             self.might_mutate_child(&mut daughter);
             self.might_mutate_child(&mut son);
@@ -125,7 +124,6 @@ impl Simulation {
                 println!("Iteration {} found better fit individual: {}", self.iterations, champion.clone().fitness);
                 champion = challenger;
             }
-
         }
 
 
@@ -201,6 +199,7 @@ pub fn find_fittest(population: &[genetic_way::Individual]) -> genetic_way::Indi
         }
     }
     best_individual.clone()
+
 }
 
 pub fn get_cumulative_weights(individuals: &[genetic_way::Individual]) -> Vec<f64> {
@@ -247,7 +246,7 @@ pub fn mixed_population(population_size: usize, cities: &[city::City]) -> Vec<ge
 {
     let number_of_cities = cities.len();
     let mut individuals:Vec<genetic_way::Individual> = Vec::new();
-    let greedy_dna_probability = 0.3;
+    let greedy_dna_probability = 0.4;
     for _ in 0..population_size
     {
         if thread_rng().gen_bool(greedy_dna_probability)

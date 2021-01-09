@@ -36,33 +36,17 @@ impl Individual {
     pub fn mutate(&mut self, cities: &[city::City]) {
         let i = thread_rng().gen_range(0, self.dna.len() - 2);
         let j = thread_rng().gen_range(i + 1, self.dna.len() - 1);
-        /*
-        println!("i: {}, j: {}", i ,j);
-        println!("ORIGINAL");
-        for i in self.dna.clone(){
-            print!("{} --> ", self.dna[i]);
+        if thread_rng().gen_bool(0.8)
+        {
+            let slice = &mut self.dna.clone()[i..=j];
+            slice.reverse();
+            self.dna.splice(i..=j, slice.iter().cloned());
+            self.fitness = fitness_calculator(&self.dna, &cities);
         }
-        println!();
-        */
-        let slice = &mut self.dna.clone()[i..=j];
-        slice.reverse();
-        self.dna.splice(i..=j, slice.iter().cloned());
-        /*
-        println!("AFTER MUTATION");
-        for i in self.dna.clone(){
-            print!("{} --> ", self.dna[i]);
+        else
+        {
+            self.dna.swap(i, j);
         }
-        println!();
-         */
-        self.fitness = fitness_calculator(&self.dna, &cities);
-
-         /*
-
-        let i = thread_rng().gen_range(1, self.dna.len() - 1);
-        let j = thread_rng().gen_range(1, self.dna.len() - 1);
-        self.dna.swap(i, j);
-        self.fitness = fitness_calculator(&self.dna, &cities);
-         */
     }
 
 
