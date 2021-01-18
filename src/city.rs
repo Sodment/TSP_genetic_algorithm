@@ -35,12 +35,14 @@ impl City
     pub fn random_cities(n: usize, mn: i64, mx: i64) -> Vec<City>{
         let mut rng = thread_rng();
         let mut cities: Vec<City> = Vec::new();
+        println!("{}", n);
 
-        for i in 0..n
+        for i in 1..n+1
         {
             let x: i64 = rng.gen_range(mn, mx);
             let y: i64 = rng.gen_range(mn, mx);
             let c = City::new(i, x, y);
+            println!("{} {} {}", i, x, y);
             cities.push(c);
         }
         cities

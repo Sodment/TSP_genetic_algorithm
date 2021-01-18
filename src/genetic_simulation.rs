@@ -123,7 +123,9 @@ impl Simulation {
             if champion.fitness < challenger.fitness {
                 println!("Iteration {} found better fit individual: {}", self.iterations, champion.clone().fitness);
                 champion = challenger;
+                //println!("champion path: {:?}", champion.dna);
             }
+
         }
 
 
